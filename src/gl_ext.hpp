@@ -34,6 +34,7 @@ PFNGLBLENDEQUATIONPROC							glBlendEquation;
 PFNGLUNIFORM1IPROC									glUniform1i;
 PFNGLUNIFORM1FPROC									glUniform1f;
 PFNGLUNIFORM3FPROC									glUniform3f;
+PFNGLUNIFORM4FPROC									glUniform4f;
 PFNGLUNIFORMMATRIX3FVPROC						glUniformMatrix3fv;
 PFNGLUNIFORMMATRIX4FVPROC						glUniformMatrix4fv;
 PFNGLATTACHSHADERPROC								glAttachShader;
@@ -71,6 +72,7 @@ bool initGlExt()
 	if ((glUniform1i = (PFNGLUNIFORM1IPROC)wglGetProcAddress("glUniform1i")) == 0) res = false;
 	if ((glUniform1f = (PFNGLUNIFORM1FPROC)wglGetProcAddress("glUniform1f")) == 0) res = false;
 	if ((glUniform3f = (PFNGLUNIFORM3FPROC)wglGetProcAddress("glUniform3f")) == 0) res = false;
+	if ((glUniform4f = (PFNGLUNIFORM4FPROC)wglGetProcAddress("glUniform4f")) == 0) res = false;
 	if ((glUniformMatrix3fv = (PFNGLUNIFORMMATRIX3FVPROC)wglGetProcAddress("glUniformMatrix3fv")) == 0) res = false;
 	if ((glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)wglGetProcAddress("glUniformMatrix4fv")) == 0) res = false;
 	if ((glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArray")) == 0) res = false;
