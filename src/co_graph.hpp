@@ -5,8 +5,12 @@
 // 描画基本クラス
 //
 
-#include <cstddef>
+#ifndef _MSC_VER
 #include <tr1/memory>
+// OSXとiOSはファイルが別
+#endif
+
+#include <cstddef>
 #include "co_defines.hpp"
 #include "co_matrix.hpp"
 #include "co_texture.hpp"
