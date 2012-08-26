@@ -3,9 +3,7 @@ This is OSX, iOS, Windows GLSL starter kit with C++.
 
 game05.xcodeproj : for OSX
 game05iOS.xcodeproj : for iOS5.0~
-
-Windowsのプロジェクトは自分で用意してください。
-必要なライブラリ:zlib, libpng
+game05.sln : for Windows VisualStudio2010
 
 
 co_matrix.hpp
