@@ -136,6 +136,7 @@ const GLchar *test3Vsh = SHADER_PROG(
 	
 );
 
+
 const GLchar *test3Fsh = SHADER_PROG(
 	uniform sampler2D sampler;
 
@@ -149,6 +150,64 @@ const GLchar *test3Fsh = SHADER_PROG(
 	}
 	
 );
+
+
+// bumped
+const GLchar *test3bVsh = SHADER_PROG(
+
+	attribute vec4 position;
+	attribute vec3 normal;
+	attribute vec2 uv;
+
+	uniform mat4 modelViewProjectionMatrix;
+	uniform mat3 normalMatrix;
+
+	uniform vec3 lightPosition;
+	uniform vec3 ambient;
+	uniform vec3 diffuse;
+	uniform vec3 specular;
+	uniform float shininess;
+
+	varying vec4 dstColor;
+	varying vec4 dstShine;
+	varying vec2 uv_out;
+
+	void main()
+	{
+		vec3 N = normalize(normalMatrix * normal);
+		vec3 L = normalize(lightPosition);
+		vec3 E = vec3(0, 0, 1);
+		vec3 H = normalize(L + E);
+
+		float df = max(0.0, dot(N, L));
+		float sf = max(0.0, dot(N, H));
+		sf = pow(sf, shininess);
+
+		vec3 color = ambient + df * diffuse;
+		dstColor = vec4(color, 1);
+		dstShine = vec4(sf * specular, 1);
+
+    gl_Position = modelViewProjectionMatrix * position;
+		uv_out = uv;
+	}
+	
+);
+
+const GLchar *test3bFsh = SHADER_PROG(
+	uniform sampler2D sampler;
+	uniform sampler2D bump;
+
+	varying lowp vec4 dstColor;
+	varying lowp vec4 dstShine;
+	varying mediump vec2 uv_out;
+
+	void main()
+	{
+    gl_FragColor = texture2D(sampler, uv_out) * dstColor + dstShine;
+	}
+	
+);
+
 
 //
 // 2D描画向け
@@ -207,11 +266,13 @@ class App {
 	EasyShader prog_;
 	EasyShader prog2_;
 	EasyShader prog3_;
+	EasyShader prog3b_;
 	EasyShader prog4_;
 
 	Sphere solid_body_;
 	Sphere texture_body_;
 	Texture texture_;
+	Texture texture_bump_;
 
 	texPtr title_texture_;
 	
@@ -229,10 +290,12 @@ public:
 		prog_(testVsh, testFsh),
 		prog2_(test2Vsh, test2Fsh),
 		prog3_(test3Vsh, test3Fsh),
+		prog3b_(test3bVsh, test3bFsh),
 		prog4_(test4Vsh, test4Fsh),
 		solid_body_(32, 16, 100),
 		texture_body_(32, 16, 100, true),
-		texture_(loadPath + "earth_4.png", true)
+		texture_(loadPath + "earth_4.png", true),
+		texture_bump_(loadPath + "bump.png", true)
 	{
 		DOUT << "App()" << std::endl;
 
@@ -311,7 +374,7 @@ public:
 		{
 			pushMatrix();
 
-			prog3_();
+			prog3b_();
 
 			rotateMatrix(rotate_ * 0.1, 1, 0, 0);
 			translateMatrix(-150, 0.0, 0);
@@ -320,22 +383,31 @@ public:
 			const Mat4f& model = getModelMatrix();
 			Mat4f pm;
 			pm = projection * model;
-			glUniformMatrix4fv(prog3_.uniform("modelViewProjectionMatrix"), 1, GL_FALSE, pm.data());
-			glUniformMatrix3fv(prog3_.uniform("normalMatrix"), 1, GL_FALSE, getNormalMatrix().data());
-			glUniform3f(prog3_.uniform("lightPosition"), 0, 10.0, 20.0);
-			glUniform3f(prog3_.uniform("ambient"), 0.5, 0.5, 0.5);
-			glUniform3f(prog3_.uniform("diffuse"), 0.5, 0.5, 0.5);
-			glUniform3f(prog3_.uniform("specular"), 0.5, 0.5, 0.5);
-			glUniform1f(prog3_.uniform("shininess"), 15.0);
-			glUniform1i(prog3_.uniform("sampler"), 0);
+			glUniformMatrix4fv(prog3b_.uniform("modelViewProjectionMatrix"), 1, GL_FALSE, pm.data());
+			glUniformMatrix3fv(prog3b_.uniform("normalMatrix"), 1, GL_FALSE, getNormalMatrix().data());
+			glUniform3f(prog3b_.uniform("lightPosition"), 0, 10.0, 20.0);
+			glUniform3f(prog3b_.uniform("ambient"), 0.5, 0.5, 0.5);
+			glUniform3f(prog3b_.uniform("diffuse"), 0.5, 0.5, 0.5);
+			glUniform3f(prog3b_.uniform("specular"), 0.5, 0.5, 0.5);
+			glUniform1f(prog3b_.uniform("shininess"), 15.0);
+
+			glActiveTexture(GL_TEXTURE0);
+			texture_.bind();
+			
+			glActiveTexture(GL_TEXTURE1);
+			texture_bump_.bind();
+			
+			glUniform1i(prog3b_.uniform("sampler"), 0);
+			glUniform1i(prog3b_.uniform("bump"), 1);
 			// FIXME:テクスチャユニットの選択がマジックナンバーなのが嫌な感じ
 
-			texture_.bind();
-			texture_body_.draw(prog3_);
+			texture_body_.draw(prog3b_);
 		
 			glBindTexture(GL_TEXTURE_2D, 0);
 			popMatrix();
 			// テクスチャな球体
+
+			glActiveTexture(GL_TEXTURE0);
 		}
 
 		
